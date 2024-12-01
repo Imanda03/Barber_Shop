@@ -7,6 +7,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: ../login.php');
     exit();
 }
+try {
+    $check = $pdo->query("SHOW COLUMNS FROM services LIKE 'image_url'");
+    if ($check->rowCount() == 0) {
+        // Column doesn't exist, so add it
+        $pdo->exec("ALTER TABLE services ADD COLUMN image_url VARCHAR(255) DEFAULT NULL");
+        $_SESSION['success'] = "Database updated successfully: Added image_url column";
+    }
+} catch (PDOException $e) {
+    $_SESSION['error'] = "Database update failed: " . $e->getMessage();
+}
 
 // Check if the id and status are provided in the URL
 if (isset($_GET['id']) && isset($_GET['status'])) {

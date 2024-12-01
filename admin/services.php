@@ -388,20 +388,20 @@ if (isset($_GET['edit'])) {
                               placeholder="Enter service description"><?= $editService ? htmlspecialchars($editService['description']) : '' ?></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="image_url"><i class="fas fa-image"></i> Image URL:</label>
-                    <input type="url" id="image_url" name="image_url" 
-                           value="<?= $editService ? htmlspecialchars($editService['image_url']) : '' ?>"
-                           placeholder="Enter image URL"
-                           onchange="previewImage(this)">
-                    <div id="image-preview" class="image-preview">
-                        <?php if ($editService && $editService['image_url']): ?>
-                            <img src="<?= htmlspecialchars($editService['image_url']) ?>" 
-                                 alt="Service preview" 
-                                 class="service-image">
-                        <?php endif; ?>
-                    </div>
-                </div>
+               <div class="form-group">
+    <label for="image_url"><i class="fas fa-image"></i> Image URL:</label>
+    <input type="url" id="image_url" name="image_url" 
+           value="<?= ($editService && isset($editService['image_url'])) ? htmlspecialchars($editService['image_url']) : '' ?>"
+           placeholder="Enter image URL"
+           onchange="previewImage(this)">
+    <div id="image-preview" class="image-preview">
+        <?php if ($editService && isset($editService['image_url']) && $editService['image_url']): ?>
+            <img src="<?= htmlspecialchars($editService['image_url']) ?>" 
+                 alt="Service preview" 
+                 class="service-image">
+        <?php endif; ?>
+    </div>
+</div>
 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas <?= $editService ? 'fa-save' : 'fa-plus' ?>"></i>

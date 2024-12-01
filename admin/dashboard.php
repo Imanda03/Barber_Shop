@@ -7,14 +7,23 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// Fetch all appointments with additional details
-$stmt = $pdo->prepare("SELECT a.*, u.name as user_name, s.name as service_name, s.price, s.duration, s.image_url 
-    FROM appointments a 
-    JOIN users u ON a.user_id = u.id 
-    JOIN services s ON a.service_id = s.id 
-    ORDER BY a.appointment_date, a.appointment_time");
-$stmt->execute();
-$appointments = $stmt->fetchAll();
+// Initialize appointments array
+$appointments = [];
+$error = null;
+
+try {
+    // Fetch all appointments with additional details
+    $stmt = $pdo->prepare("SELECT a.*, u.name as user_name, s.name as service_name, s.price, s.duration, s.image_url 
+        FROM appointments a 
+        JOIN users u ON a.user_id = u.id 
+        JOIN services s ON a.service_id = s.id 
+        ORDER BY a.appointment_date, a.appointment_time");
+    $stmt->execute();
+    $appointments = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $error = "Database error: Unable to fetch appointments. Please try again later.";
+    error_log("Database error in admin dashboard: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -75,6 +84,8 @@ $appointments = $stmt->fetchAll();
             margin-right: 8px;
             text-decoration: none;
             transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
         }
 
         .btn-confirm {
@@ -100,6 +111,60 @@ $appointments = $stmt->fetchAll();
         .disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #6c757d;
+        }
+
+        .no-data-message i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .no-data-message h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .no-data-message p {
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .error-banner {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .error-banner i {
+            margin-right: 10px;
         }
 
         /* Modal styles */
@@ -177,6 +242,21 @@ $appointments = $stmt->fetchAll();
             font-weight: 500;
         }
 
+        .status-pending {
+            background-color: #ffeeba;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
         .close {
             position: absolute;
             right: 20px;
@@ -186,6 +266,15 @@ $appointments = $stmt->fetchAll();
             font-size: 28px;
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+
+        .no-image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background-color: #f8f9fa;
+            color: #dee2e6;
         }
 
         @keyframes fadeIn {
@@ -223,6 +312,23 @@ $appointments = $stmt->fetchAll();
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* Modal image styling */
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .duration-badge, .price-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .duration-badge i, .price-tag i {
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -240,7 +346,29 @@ $appointments = $stmt->fetchAll();
         <div class="dashboard-header">
             <h2>Admin Dashboard</h2>
         </div>
+
+        <?php if ($error): ?>
+        <div class="error-banner">
+            <div>
+                <i class="fas fa-exclamation-circle"></i>
+                <?= htmlspecialchars($error) ?>
+            </div>
+            <a href="dashboard.php" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i> Retry
+            </a>
+        </div>
+        <?php endif; ?>
         
+        <?php if (empty($appointments) && !$error): ?>
+        <div class="no-data-message">
+            <i class="far fa-calendar-times"></i>
+            <h3>No Appointments Found</h3>
+            <p>There are currently no appointments in the system.</p>
+            <a href="dashboard.php" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i> Refresh Page
+            </a>
+        </div>
+        <?php else: ?>
         <table>
             <tr>
                 <th>Customer</th>
@@ -279,6 +407,7 @@ $appointments = $stmt->fetchAll();
                 </tr>
             <?php endforeach; ?>
         </table>
+        <?php endif; ?>
     </div>
 
     <!-- Modal -->
