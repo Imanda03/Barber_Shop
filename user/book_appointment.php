@@ -443,6 +443,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 this.value = '';
             }
         });
+        document.addEventListener('DOMContentLoaded', function() {
+    // Function to get URL parameters
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Get service_id from URL
+    const serviceId = getUrlParameter('service_id');
+    
+    // If service_id exists in URL, auto-select the service
+    if (serviceId) {
+        const serviceSelect = document.querySelector('select[name="service_id"]'); // Adjust selector based on your form
+        
+        if (serviceSelect) {
+            // Set the value
+            serviceSelect.value = serviceId;
+            
+            // Trigger change event in case you have any dependent fields
+            const event = new Event('change');
+            serviceSelect.dispatchEvent(event);
+        }
+    }
+});
     </script>
 </body>
 </html>

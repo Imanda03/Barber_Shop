@@ -2,8 +2,8 @@
 // config.php
 $host = "localhost";
 $dbname = "barbershop_db";
-$username = "barber";  // Change this to your database username
-$password = "barber";      // Change this to your database password
+$username = "kidncode";  // Change this to your database username
+$password = "kidncode";      // Change this to your database password
 
 try {
     // Create PDO connection
